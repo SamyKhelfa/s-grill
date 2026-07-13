@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import DishStepper from "@/components/DishStepper";
 import AddDishForm from "@/components/AddDishForm";
+import HaloufAwards from "@/components/HaloufAwards";
 import type { Category, Dish, Order, Outing, Round } from "@/lib/types";
 
 export default function OrderingApp({
@@ -24,6 +25,7 @@ export default function OrderingApp({
   const [activeRoundId, setActiveRoundId] = useState<string | null>(null);
   const [view, setView] = useState<"order" | "totals">("order");
   const [showAddDish, setShowAddDish] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const loadMenu = useCallback(async () => {
     const [{ data: cats }, { data: dishRows }] = await Promise.all([
@@ -206,6 +208,10 @@ export default function OrderingApp({
     );
   }
 
+  if (showLeaderboard) {
+    return <HaloufAwards onClose={() => setShowLeaderboard(false)} />;
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-black/90">
@@ -213,9 +219,14 @@ export default function OrderingApp({
           <h1 className="text-lg font-semibold">S-Grill 🍢</h1>
           <p className="text-xs text-neutral-500">{displayName}</p>
         </div>
-        <button onClick={signOut} className="text-xs text-neutral-500 underline">
-          Déconnexion
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowLeaderboard(true)} className="text-xs text-neutral-500 underline">
+            🐷 Halouf Awards
+          </button>
+          <button onClick={signOut} className="text-xs text-neutral-500 underline">
+            Déconnexion
+          </button>
+        </div>
       </header>
 
       {!outing ? (

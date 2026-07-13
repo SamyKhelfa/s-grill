@@ -29,3 +29,11 @@ export type Order = {
   dish_id: string;
   quantity: number;
 };
+
+export type HaloufAwardRow = {
+  user_id: string;
+  display_name: string;
+  total_quantity: number;
+  outings_count: number;
+  avg_per_outing: number;
+};

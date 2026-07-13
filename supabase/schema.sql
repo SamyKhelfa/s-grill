@@ -144,7 +144,26 @@ create trigger orders_set_updated_at
   before update on public.orders
   for each row execute procedure public.set_updated_at();
 
--- 5. Realtime -------------------------------------------------------------------
+-- 5. Halouf Awards --------------------------------------------------------------
+-- Lifetime leaderboard: who has ordered the most, across every outing.
+create view public.halouf_awards as
+select
+  p.id as user_id,
+  p.display_name,
+  coalesce(sum(o.quantity), 0)::int as total_quantity,
+  count(distinct r.outing_id) as outings_count,
+  case
+    when count(distinct r.outing_id) = 0 then 0
+    else round(coalesce(sum(o.quantity), 0)::numeric / count(distinct r.outing_id), 1)
+  end as avg_per_outing
+from public.profiles p
+left join public.orders o on o.user_id = p.id and o.quantity > 0
+left join public.rounds r on r.id = o.round_id
+group by p.id, p.display_name;
+
+grant select on public.halouf_awards to authenticated;
+
+-- 6. Realtime -------------------------------------------------------------------
 -- Broadcast changes on orders/rounds so every phone sees the live running total.
 alter publication supabase_realtime add table public.orders;
 alter publication supabase_realtime add table public.rounds;

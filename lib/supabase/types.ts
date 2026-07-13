@@ -95,7 +95,18 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      halouf_awards: {
+        Row: {
+          user_id: string;
+          display_name: string;
+          total_quantity: number;
+          outings_count: number;
+          avg_per_outing: number;
+        };
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
   };
 };
