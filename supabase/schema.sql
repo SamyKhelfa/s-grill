@@ -51,6 +51,8 @@ create table public.dishes (
   name text not null,
   evening_and_holidays_only boolean not null default false,
   is_custom boolean not null default false,
+  -- Rough per-portion estimate, not a nutritionist's figure. Feeds the Halouf Awards ranking.
+  calories_estimate int not null default 0,
   added_by uuid references public.profiles (id),
   created_at timestamptz not null default now()
 );
@@ -145,20 +147,24 @@ create trigger orders_set_updated_at
   for each row execute procedure public.set_updated_at();
 
 -- 5. Halouf Awards --------------------------------------------------------------
--- Lifetime leaderboard: who has ordered the most, across every outing.
+-- Lifetime leaderboard: who has eaten the most estimated calories, across every outing.
+-- Ranked by calories rather than dish count so a handful of chef's mains isn't
+-- outranked by a pile of cheap skewers.
 create view public.halouf_awards as
 select
   p.id as user_id,
   p.display_name,
+  coalesce(sum(o.quantity * d.calories_estimate), 0)::int as total_calories,
   coalesce(sum(o.quantity), 0)::int as total_quantity,
   count(distinct r.outing_id) as outings_count,
   case
     when count(distinct r.outing_id) = 0 then 0
-    else round(coalesce(sum(o.quantity), 0)::numeric / count(distinct r.outing_id), 1)
-  end as avg_per_outing
+    else round(coalesce(sum(o.quantity * d.calories_estimate), 0)::numeric / count(distinct r.outing_id), 0)
+  end as avg_calories_per_outing
 from public.profiles p
 left join public.orders o on o.user_id = p.id and o.quantity > 0
 left join public.rounds r on r.id = o.round_id
+left join public.dishes d on d.id = o.dish_id
 group by p.id, p.display_name;
 
 grant select on public.halouf_awards to authenticated;

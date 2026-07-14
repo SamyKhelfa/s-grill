@@ -18,6 +18,7 @@ export default function AddDishForm({
   const supabase = createClient();
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [calories, setCalories] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,23 +32,25 @@ export default function AddDishForm({
       name: name.trim(),
       category_id: categoryId,
       is_custom: true,
+      calories_estimate: Number(calories) || 0,
       added_by: userId,
     });
 
     setSaving(false);
     if (error) return setError(error.message);
     setName("");
+    setCalories("");
     onAdded();
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-2 rounded-lg border border-dashed border-neutral-300 p-3 dark:border-neutral-700"
+      className="flex flex-col gap-2 rounded-xl border border-dashed border-gold/30 bg-surface p-3"
     >
-      <p className="text-sm font-medium">Ajouter un plat hors carte</p>
+      <p className="text-sm font-medium text-gold">Ajouter un plat hors carte</p>
       <input
-        className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        className="rounded-md border border-gold/20 bg-ink px-2 py-1.5 text-sm text-paper placeholder:text-paper/40"
         placeholder="Nom du plat"
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -55,7 +58,7 @@ export default function AddDishForm({
         required
       />
       <select
-        className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        className="rounded-md border border-gold/20 bg-ink px-2 py-1.5 text-sm text-paper"
         value={categoryId}
         onChange={(e) => setCategoryId(e.target.value)}
       >
@@ -65,21 +68,32 @@ export default function AddDishForm({
           </option>
         ))}
       </select>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      <input
+        className="rounded-md border border-gold/20 bg-ink px-2 py-1.5 text-sm text-paper placeholder:text-paper/40"
+        type="number"
+        min={0}
+        step={10}
+        placeholder="Estimation calories (ex: 250)"
+        value={calories}
+        onChange={(e) => setCalories(e.target.value)}
+        required
+      />
+      {error && <p className="text-xs text-shu">{error}</p>}
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-shu px-3 py-1.5 text-sm font-medium text-paper disabled:opacity-50"
         >
           Ajouter
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-neutral-500">
+        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-paper/50">
           Annuler
         </button>
       </div>
-      <p className="text-xs text-neutral-500">
-        Ce plat restera dans la carte pour toutes les prochaines sorties.
+      <p className="text-xs text-paper/40">
+        Ce plat restera dans la carte pour toutes les prochaines sorties, et comptera dans les
+        Halouf Awards selon l&apos;estimation renseignée.
       </p>
     </form>
   );

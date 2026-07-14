@@ -4,8 +4,8 @@
   "description": "Commande de plats à volonté entre amis",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#dc2626",
+  "background_color": "#1c1512",
+  "theme_color": "#d0451e",
   "icons": [
     {
       "src": "/icon-192.png",

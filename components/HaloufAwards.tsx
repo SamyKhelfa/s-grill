@@ -15,7 +15,7 @@ export default function HaloufAwards({ onClose }: { onClose: () => void }) {
     supabase
       .from("halouf_awards")
       .select("*")
-      .order("total_quantity", { ascending: false })
+      .order("total_calories", { ascending: false })
       .then(({ data }) => {
         setRows(data ?? []);
         setLoading(false);
@@ -23,38 +23,44 @@ export default function HaloufAwards({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col p-4">
+    <main className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ink p-4 text-paper">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">🐷 Halouf Awards</h1>
-        <button onClick={onClose} className="text-sm text-neutral-500 underline">
+        <h1 className="font-display text-lg font-bold text-gold">🐷 Halouf Awards</h1>
+        <button onClick={onClose} className="text-sm text-paper/60 underline">
           Retour
         </button>
       </div>
 
-      <p className="mb-4 text-sm text-neutral-500">
-        Classement à vie, toutes sorties confondues — le nombre total de plats commandés.
+      <p className="mb-1 text-sm text-paper/60">
+        Classement à vie, toutes sorties confondues — en calories estimées, pas en nombre de plats.
+      </p>
+      <p className="mb-4 text-xs text-paper/40">
+        Estimation indicative par plat, pas un calcul nutritionnel précis.
       </p>
 
       {loading ? (
-        <p className="text-sm text-neutral-500">Chargement…</p>
-      ) : rows.every((r) => r.total_quantity === 0) ? (
-        <p className="text-sm text-neutral-500">Personne n&apos;a encore commandé quoi que ce soit.</p>
+        <p className="text-sm text-paper/50">Chargement…</p>
+      ) : rows.every((r) => r.total_calories === 0) ? (
+        <p className="text-sm text-paper/50">Personne n&apos;a encore commandé quoi que ce soit.</p>
       ) : (
         <ol className="flex flex-col gap-2">
           {rows.map((r, i) => (
             <li
               key={r.user_id}
-              className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-800"
+              className={`flex items-center justify-between rounded-xl p-3 ${
+                i === 0 ? "bg-shu/15" : "bg-surface"
+              }`}
             >
               <span className="flex items-center gap-2">
-                <span className="w-6 text-center">{MEDALS[i] ?? `${i + 1}.`}</span>
+                <span className="w-6 text-center text-lg">{MEDALS[i] ?? `${i + 1}.`}</span>
                 <span className="font-medium">{r.display_name}</span>
               </span>
-              <span className="text-right text-sm text-neutral-500">
-                <span className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
-                  {r.total_quantity}
+              <span className="text-right text-sm text-paper/60">
+                <span className="font-semibold tabular-nums text-gold">
+                  {r.total_calories.toLocaleString("fr-FR")}
                 </span>{" "}
-                plats · {r.outings_count} sortie{r.outings_count > 1 ? "s" : ""} · {r.avg_per_outing}/sortie
+                kcal · {r.total_quantity} plats · {r.outings_count} sortie
+                {r.outings_count > 1 ? "s" : ""}
               </span>
             </li>
           ))}

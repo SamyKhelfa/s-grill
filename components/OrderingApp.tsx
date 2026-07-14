@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import DishStepper from "@/components/DishStepper";
 import AddDishForm from "@/components/AddDishForm";
 import HaloufAwards from "@/components/HaloufAwards";
+import ProfileStats from "@/components/ProfileStats";
+import { categoryAccent, categoryIcon } from "@/lib/categoryStyle";
 import type { Category, Dish, Order, Outing, Round } from "@/lib/types";
 
 export default function OrderingApp({
@@ -25,7 +27,9 @@ export default function OrderingApp({
   const [activeRoundId, setActiveRoundId] = useState<string | null>(null);
   const [view, setView] = useState<"order" | "totals">("order");
   const [showAddDish, setShowAddDish] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [panel, setPanel] = useState<"none" | "halouf" | "profile">("none");
+  const [showCart, setShowCart] = useState(false);
+  const [totalsScope, setTotalsScope] = useState<"round" | "outing">("round");
 
   const loadMenu = useCallback(async () => {
     const [{ data: cats }, { data: dishRows }] = await Promise.all([
@@ -117,14 +121,43 @@ export default function OrderingApp({
 
   const totalsPerDish = useMemo(() => {
     const map = new Map<string, number>();
-    for (const o of orders) {
+    const relevant =
+      totalsScope === "round" ? orders.filter((o) => o.round_id === activeRoundId) : orders;
+    for (const o of relevant) {
       map.set(o.dish_id, (map.get(o.dish_id) ?? 0) + o.quantity);
     }
     return map;
-  }, [orders]);
+  }, [orders, totalsScope, activeRoundId]);
 
+  const myRoundItems = useMemo(() => {
+    const dishById = new Map(dishes.map((d) => [d.id, d]));
+    return orders
+      .filter((o) => o.round_id === activeRoundId && o.user_id === userId && o.quantity > 0)
+      .map((o) => {
+        const dish = dishById.get(o.dish_id);
+        return {
+          dishId: o.dish_id,
+          name: dish?.name ?? "?",
+          quantity: o.quantity,
+          calories: o.quantity * (dish?.calories_estimate ?? 0),
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [orders, dishes, activeRoundId, userId]);
+
+  const myRoundStats = useMemo(
+    () => ({
+      quantity: myRoundItems.reduce((sum, item) => sum + item.quantity, 0),
+      calories: myRoundItems.reduce((sum, item) => sum + item.calories, 0),
+    }),
+    [myRoundItems]
+  );
+
+  const MAX_ROUNDS = 3;
   const lastRound = rounds.at(-1) ?? null;
   const lastRoundHasOrders = orders.some((o) => o.round_id === lastRound?.id && o.quantity > 0);
+  const atMaxRounds = rounds.length >= MAX_ROUNDS;
+  const canAddRound = lastRoundHasOrders && !atMaxRounds;
 
   async function startOuting() {
     const { data: newOuting, error } = await supabase
@@ -139,7 +172,7 @@ export default function OrderingApp({
   }
 
   async function addRound() {
-    if (!outing || !lastRoundHasOrders) return;
+    if (!outing || !canAddRound) return;
     const nextNumber = (rounds.at(-1)?.round_number ?? 0) + 1;
     const { data: newRound } = await supabase
       .from("rounds")
@@ -150,20 +183,17 @@ export default function OrderingApp({
     await loadOuting();
   }
 
-  async function resetRounds() {
-    if (!outing) return;
-    if (
-      !confirm(
-        "Réinitialiser les rounds ? Toutes les commandes de cette sortie seront supprimées et on repart d'un round 1 vide."
-      )
-    )
+  async function resetMyOrders() {
+    if (!activeRoundId) return;
+    const roundNumber = rounds.find((r) => r.id === activeRoundId)?.round_number;
+    if (!confirm(`Remettre à zéro vos plats sélectionnés pour le round ${roundNumber} ? Les commandes des autres ne sont pas touchées.`))
       return;
 
-    const roundIds = rounds.map((r) => r.id);
-    if (roundIds.length > 0) {
-      await supabase.from("rounds").delete().in("id", roundIds);
-    }
-    await supabase.from("rounds").insert({ outing_id: outing.id, round_number: 1 });
+    setOrders((prev) =>
+      prev.filter((o) => !(o.round_id === activeRoundId && o.user_id === userId))
+    );
+
+    await supabase.from("orders").delete().eq("round_id", activeRoundId).eq("user_id", userId);
     await loadOuting();
   }
 
@@ -204,49 +234,102 @@ export default function OrderingApp({
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center text-neutral-500">Chargement…</main>
+      <main className="flex min-h-dvh items-center justify-center bg-ink text-paper/60">
+        Chargement…
+      </main>
     );
   }
 
-  if (showLeaderboard) {
-    return <HaloufAwards onClose={() => setShowLeaderboard(false)} />;
+  if (panel === "halouf") {
+    return <HaloufAwards onClose={() => setPanel("none")} />;
+  }
+
+  if (panel === "profile") {
+    return <ProfileStats userId={userId} displayName={displayName} onClose={() => setPanel("none")} />;
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-neutral-800 dark:bg-black/90">
+    <main className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ink text-paper">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gold/20 bg-ink/95 px-4 py-3 backdrop-blur">
         <div>
-          <h1 className="text-lg font-semibold">S-Grill 🍢</h1>
-          <p className="text-xs text-neutral-500">{displayName}</p>
+          <h1 className="font-display text-xl font-bold tracking-wide text-gold">S-Grill 🍢</h1>
+          <button onClick={() => setPanel("profile")} className="text-xs text-paper/60 underline">
+            {displayName}
+          </button>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowLeaderboard(true)} className="text-xs text-neutral-500 underline">
+          <button onClick={() => setPanel("halouf")} className="text-xs text-paper/60 underline">
             🐷 Halouf Awards
           </button>
-          <button onClick={signOut} className="text-xs text-neutral-500 underline">
+          <button onClick={signOut} className="text-xs text-paper/60 underline">
             Déconnexion
           </button>
+          {outing && activeRoundId && (
+            <button
+              onClick={() => setShowCart((v) => !v)}
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-lg"
+            >
+              🛒
+              {myRoundStats.quantity > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-shu px-1 text-[10px] font-bold text-paper">
+                  {myRoundStats.quantity}
+                </span>
+              )}
+            </button>
+          )}
         </div>
+
+        {showCart && (
+          <div className="absolute right-4 top-full z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl bg-surface-2 p-3 shadow-xl shadow-black/40 ring-1 ring-gold/20">
+            <div className="mb-2 flex items-center justify-between border-b border-gold/10 pb-2">
+              <p className="text-sm font-semibold text-gold">
+                Round {rounds.find((r) => r.id === activeRoundId)?.round_number}
+              </p>
+              <button onClick={() => setShowCart(false)} className="text-xs text-paper/50">
+                ✕
+              </button>
+            </div>
+            {myRoundItems.length === 0 ? (
+              <p className="py-3 text-center text-sm text-paper/50">Rien commandé pour l&apos;instant.</p>
+            ) : (
+              <ul className="max-h-64 divide-y divide-gold/10 overflow-y-auto">
+                {myRoundItems.map((item) => (
+                  <li key={item.dishId} className="flex items-center justify-between py-1.5 text-sm">
+                    <span className="flex-1 truncate pr-2">{item.name}</span>
+                    <span className="tabular-nums text-paper/50">×{item.quantity}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-2 flex items-center justify-between border-t border-gold/10 pt-2 text-sm">
+              <span className="text-paper/60">Total</span>
+              <span className="font-semibold tabular-nums text-gold">
+                {myRoundStats.calories.toLocaleString("fr-FR")} kcal
+              </span>
+            </div>
+          </div>
+        )}
       </header>
 
       {!outing ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-          <p className="text-neutral-500">Aucune sortie en cours.</p>
-          <button onClick={startOuting} className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white">
+          <p className="text-paper/60">Aucune sortie en cours.</p>
+          <button
+            onClick={startOuting}
+            className="rounded-lg bg-shu px-5 py-2.5 font-medium text-paper shadow-lg shadow-shu/20"
+          >
             Démarrer une sortie
           </button>
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 overflow-x-auto border-b border-neutral-200 px-4 py-2 dark:border-neutral-800">
+          <div className="flex items-center gap-2 overflow-x-auto border-b border-gold/10 px-4 py-2">
             {rounds.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setActiveRoundId(r.id)}
-                className={`shrink-0 rounded-full px-3 py-1 text-sm ${
-                  activeRoundId === r.id
-                    ? "bg-red-600 text-white"
-                    : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300"
+                className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${
+                  activeRoundId === r.id ? "bg-shu text-paper" : "bg-surface text-paper/60"
                 }`}
               >
                 Round {r.round_number}
@@ -254,29 +337,28 @@ export default function OrderingApp({
             ))}
             <button
               onClick={addRound}
-              disabled={!lastRoundHasOrders}
+              disabled={!canAddRound}
               title={
-                lastRoundHasOrders
-                  ? undefined
-                  : "Passez au moins une commande dans le round en cours avant d'en ouvrir un nouveau"
+                atMaxRounds
+                  ? "Maximum 3 rounds par sortie"
+                  : lastRoundHasOrders
+                    ? undefined
+                    : "Passez au moins une commande dans le round en cours avant d'en ouvrir un nouveau"
               }
-              className="shrink-0 rounded-full border border-dashed border-neutral-300 px-3 py-1 text-sm text-neutral-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700"
+              className="shrink-0 rounded-full border border-dashed border-gold/40 px-3 py-1 text-sm text-gold disabled:cursor-not-allowed disabled:opacity-30"
             >
               + Round
             </button>
-            <button
-              onClick={resetRounds}
-              className="ml-auto shrink-0 text-sm text-neutral-400 underline"
-            >
-              Réinitialiser
+            <button onClick={resetMyOrders} className="ml-auto shrink-0 text-sm text-paper/40 underline">
+              Réinitialiser mes plats
             </button>
           </div>
 
-          <div className="flex border-b border-neutral-200 dark:border-neutral-800">
+          <div className="flex border-b border-gold/10">
             <button
               onClick={() => setView("order")}
               className={`flex-1 py-2 text-sm font-medium ${
-                view === "order" ? "border-b-2 border-red-600" : "text-neutral-500"
+                view === "order" ? "border-b-2 border-gold text-gold" : "text-paper/50"
               }`}
             >
               Commander
@@ -284,7 +366,7 @@ export default function OrderingApp({
             <button
               onClick={() => setView("totals")}
               className={`flex-1 py-2 text-sm font-medium ${
-                view === "totals" ? "border-b-2 border-red-600" : "text-neutral-500"
+                view === "totals" ? "border-b-2 border-gold text-gold" : "text-paper/50"
               }`}
             >
               Totaux (feuille resto)
@@ -294,20 +376,36 @@ export default function OrderingApp({
           <div className="flex-1 overflow-y-auto p-4">
             {view === "order" ? (
               <div className="flex flex-col gap-6">
-                {categories.map((cat) => {
+                {categories.map((cat, i) => {
                   const list = dishesByCategory.get(cat.id) ?? [];
                   if (list.length === 0) return null;
+                  const accent = categoryAccent(i);
                   return (
                     <section key={cat.id} className="flex flex-col gap-2">
-                      <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                      <h2
+                        className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
+                          accent === "shu" ? "bg-shu/15 text-shu" : "bg-gold/15 text-gold"
+                        }`}
+                      >
+                        <span>{categoryIcon(cat.name)}</span>
                         {cat.name}
                       </h2>
                       {list.map((d) => (
-                        <div key={d.id} className="flex items-center justify-between gap-2 py-1">
-                          <span className="text-sm">
+                        <div
+                          key={d.id}
+                          className="flex items-center gap-3 rounded-xl bg-surface p-3"
+                        >
+                          <span
+                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-2xl ${
+                              accent === "shu" ? "bg-shu/15" : "bg-gold/15"
+                            }`}
+                          >
+                            {categoryIcon(cat.name)}
+                          </span>
+                          <span className="flex-1 text-sm">
                             {d.name}
                             {d.evening_and_holidays_only && (
-                              <span className="ml-1 text-xs text-neutral-400">(soir/J-F)</span>
+                              <span className="ml-1 text-xs text-paper/40">(soir/J-F)</span>
                             )}
                           </span>
                           <DishStepper
@@ -333,7 +431,7 @@ export default function OrderingApp({
                 ) : (
                   <button
                     onClick={() => setShowAddDish(true)}
-                    className="rounded-lg border border-dashed border-neutral-300 py-2 text-sm text-neutral-500 dark:border-neutral-700"
+                    className="rounded-lg border border-dashed border-gold/30 py-2 text-sm text-gold"
                   >
                     + Ajouter un plat hors carte
                   </button>
@@ -341,29 +439,60 @@ export default function OrderingApp({
               </div>
             ) : (
               <div className="flex flex-col gap-6">
-                {categories.map((cat) => {
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setTotalsScope("round")}
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${
+                      totalsScope === "round" ? "bg-shu text-paper" : "bg-surface text-paper/60"
+                    }`}
+                  >
+                    Round {rounds.find((r) => r.id === activeRoundId)?.round_number} uniquement
+                  </button>
+                  <button
+                    onClick={() => setTotalsScope("outing")}
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${
+                      totalsScope === "outing" ? "bg-shu text-paper" : "bg-surface text-paper/60"
+                    }`}
+                  >
+                    Toute la sortie
+                  </button>
+                </div>
+
+                {categories.map((cat, i) => {
                   const list = (dishesByCategory.get(cat.id) ?? []).filter(
                     (d) => (totalsPerDish.get(d.id) ?? 0) > 0
                   );
                   if (list.length === 0) return null;
+                  const accent = categoryAccent(i);
                   return (
                     <section key={cat.id} className="flex flex-col gap-1">
-                      <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                      <h2
+                        className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${
+                          accent === "shu" ? "bg-shu/15 text-shu" : "bg-gold/15 text-gold"
+                        }`}
+                      >
+                        <span>{categoryIcon(cat.name)}</span>
                         {cat.name}
                       </h2>
                       {list.map((d) => (
-                        <div key={d.id} className="flex items-center justify-between text-sm">
+                        <div key={d.id} className="flex items-center justify-between px-1 py-1.5 text-sm">
                           <span>{d.name}</span>
-                          <span className="font-semibold tabular-nums">{totalsPerDish.get(d.id)}</span>
+                          <span className="font-semibold tabular-nums text-gold">
+                            {totalsPerDish.get(d.id)}
+                          </span>
                         </div>
                       ))}
                     </section>
                   );
                 })}
-                {orders.length === 0 && (
-                  <p className="text-center text-sm text-neutral-500">Aucune commande pour le moment.</p>
+                {totalsPerDish.size === 0 && (
+                  <p className="text-center text-sm text-paper/50">
+                    {totalsScope === "round"
+                      ? "Aucune commande pour ce round."
+                      : "Aucune commande pour le moment."}
+                  </p>
                 )}
-                <button onClick={closeOuting} className="mt-4 text-sm text-neutral-500 underline">
+                <button onClick={closeOuting} className="mt-4 text-sm text-paper/40 underline">
                   Clôturer cette sortie
                 </button>
               </div>

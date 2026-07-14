@@ -6,6 +6,7 @@ export type Dish = {
   name: string;
   evening_and_holidays_only: boolean;
   is_custom: boolean;
+  calories_estimate: number;
 };
 
 export type Outing = {
@@ -33,7 +34,8 @@ export type Order = {
 export type HaloufAwardRow = {
   user_id: string;
   display_name: string;
+  total_calories: number;
   total_quantity: number;
   outings_count: number;
-  avg_per_outing: number;
+  avg_calories_per_outing: number;
 };
