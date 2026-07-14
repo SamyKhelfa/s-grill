@@ -6,6 +6,7 @@ import DishStepper from "@/components/DishStepper";
 import AddDishForm from "@/components/AddDishForm";
 import HaloufAwards from "@/components/HaloufAwards";
 import ProfileStats from "@/components/ProfileStats";
+import SegmentedControl from "@/components/SegmentedControl";
 import { categoryAccent, categoryIcon } from "@/lib/categoryStyle";
 import type { Category, Dish, Order, Outing, Round } from "@/lib/types";
 
@@ -358,23 +359,15 @@ export default function OrderingApp({
             </button>
           </div>
 
-          <div className="flex gap-1 rounded-full bg-surface p-1 mx-4 my-2">
-            <button
-              onClick={() => setView("order")}
-              className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
-                view === "order" ? "bg-shu text-paper" : "text-paper/50"
-              }`}
-            >
-              Commander
-            </button>
-            <button
-              onClick={() => setView("totals")}
-              className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
-                view === "totals" ? "bg-shu text-paper" : "text-paper/50"
-              }`}
-            >
-              Totaux
-            </button>
+          <div className="mx-4 my-2">
+            <SegmentedControl
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "order", label: "Commander" },
+                { value: "totals", label: "Totaux" },
+              ]}
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
@@ -443,24 +436,17 @@ export default function OrderingApp({
               </div>
             ) : (
               <div className="flex flex-col gap-6">
-                <div className="flex gap-1 rounded-full bg-surface p-1">
-                  <button
-                    onClick={() => setTotalsScope("round")}
-                    className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
-                      totalsScope === "round" ? "bg-shu text-paper" : "text-paper/60"
-                    }`}
-                  >
-                    Round {rounds.find((r) => r.id === activeRoundId)?.round_number}
-                  </button>
-                  <button
-                    onClick={() => setTotalsScope("outing")}
-                    className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
-                      totalsScope === "outing" ? "bg-shu text-paper" : "text-paper/60"
-                    }`}
-                  >
-                    Toute la sortie
-                  </button>
-                </div>
+                <SegmentedControl
+                  value={totalsScope}
+                  onChange={setTotalsScope}
+                  options={[
+                    {
+                      value: "round",
+                      label: `Round ${rounds.find((r) => r.id === activeRoundId)?.round_number ?? ""}`,
+                    },
+                    { value: "outing", label: "Toute la sortie" },
+                  ]}
+                />
 
                 {categories.map((cat, i) => {
                   const list = (dishesByCategory.get(cat.id) ?? []).filter(

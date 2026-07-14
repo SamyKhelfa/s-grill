@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import BackButton from "@/components/BackButton";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -42,12 +42,7 @@ export default function LoginForm() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 bg-ink p-6 text-paper">
       <div>
-        <Link
-          href="/"
-          className="-ml-1 flex w-fit items-center gap-0.5 rounded-full py-1.5 pl-1 pr-3 text-sm font-medium text-gold active:opacity-60"
-        >
-          <span className="text-lg">‹</span> Retour
-        </Link>
+        <BackButton href="/" />
         <h1 className="mt-2 font-display text-2xl font-bold text-gold">S-Grill 🍢</h1>
       </div>
 

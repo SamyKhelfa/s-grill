@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import BackButton from "@/components/BackButton";
 import type { HaloufAwardRow } from "@/lib/types";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -24,12 +25,7 @@ export default function HaloufAwards({ onClose }: { onClose: () => void }) {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ink p-4 text-paper">
-      <button
-        onClick={onClose}
-        className="-ml-1 mb-2 flex w-fit items-center gap-0.5 rounded-full py-1.5 pl-1 pr-3 text-sm font-medium text-gold active:opacity-60"
-      >
-        <span className="text-lg">‹</span> Retour
-      </button>
+      <BackButton onClick={onClose} />
       <h1 className="mb-4 font-display text-lg font-bold text-gold">🐷 Halouf Awards</h1>
 
       <p className="mb-1 text-sm text-paper/60">
