@@ -83,11 +83,15 @@ export default function AddDishForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-shu px-3 py-1.5 text-sm font-medium text-paper disabled:opacity-50"
+          className="rounded-lg bg-shu px-4 py-2 text-sm font-medium text-paper active:scale-[0.98] disabled:opacity-50"
         >
           Ajouter
         </button>
-        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-paper/50">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg px-4 py-2 text-sm text-paper/50 active:bg-ink"
+        >
           Annuler
         </button>
       </div>

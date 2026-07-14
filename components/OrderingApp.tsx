@@ -227,11 +227,6 @@ export default function OrderingApp({
     );
   }
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  }
-
   if (loading) {
     return (
       <main className="flex min-h-dvh items-center justify-center bg-ink text-paper/60">
@@ -253,21 +248,24 @@ export default function OrderingApp({
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gold/20 bg-ink/95 px-4 py-3 backdrop-blur">
         <div>
           <h1 className="font-display text-xl font-bold tracking-wide text-gold">S-Grill 🍢</h1>
-          <button onClick={() => setPanel("profile")} className="text-xs text-paper/60 underline">
+          <button
+            onClick={() => setPanel("profile")}
+            className="-ml-2 rounded-full px-2 py-0.5 text-xs text-paper/60 active:bg-surface-2"
+          >
             {displayName}
           </button>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setPanel("halouf")} className="text-xs text-paper/60 underline">
-            🐷 Halouf Awards
-          </button>
-          <button onClick={signOut} className="text-xs text-paper/60 underline">
-            Déconnexion
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPanel("halouf")}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-lg active:scale-95"
+          >
+            🐷
           </button>
           {outing && activeRoundId && (
             <button
               onClick={() => setShowCart((v) => !v)}
-              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-lg"
+              className="relative flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-lg active:scale-95"
             >
               🛒
               {myRoundStats.quantity > 0 && (
@@ -285,7 +283,10 @@ export default function OrderingApp({
               <p className="text-sm font-semibold text-gold">
                 Round {rounds.find((r) => r.id === activeRoundId)?.round_number}
               </p>
-              <button onClick={() => setShowCart(false)} className="text-xs text-paper/50">
+              <button
+                onClick={() => setShowCart(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-sm text-paper/60 active:scale-95"
+              >
                 ✕
               </button>
             </div>
@@ -316,19 +317,19 @@ export default function OrderingApp({
           <p className="text-paper/60">Aucune sortie en cours.</p>
           <button
             onClick={startOuting}
-            className="rounded-lg bg-shu px-5 py-2.5 font-medium text-paper shadow-lg shadow-shu/20"
+            className="rounded-xl bg-shu px-5 py-3 font-medium text-paper shadow-lg shadow-shu/20 active:scale-[0.98]"
           >
             Démarrer une sortie
           </button>
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 overflow-x-auto border-b border-gold/10 px-4 py-2">
+          <div className="flex items-center gap-2 overflow-x-auto border-b border-gold/10 px-4 py-2.5">
             {rounds.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setActiveRoundId(r.id)}
-                className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium active:scale-95 ${
                   activeRoundId === r.id ? "bg-shu text-paper" : "bg-surface text-paper/60"
                 }`}
               >
@@ -345,31 +346,34 @@ export default function OrderingApp({
                     ? undefined
                     : "Passez au moins une commande dans le round en cours avant d'en ouvrir un nouveau"
               }
-              className="shrink-0 rounded-full border border-dashed border-gold/40 px-3 py-1 text-sm text-gold disabled:cursor-not-allowed disabled:opacity-30"
+              className="shrink-0 rounded-full border border-dashed border-gold/40 px-3.5 py-1.5 text-sm text-gold active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
             >
               + Round
             </button>
-            <button onClick={resetMyOrders} className="ml-auto shrink-0 text-sm text-paper/40 underline">
-              Réinitialiser mes plats
+            <button
+              onClick={resetMyOrders}
+              className="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-surface px-3 py-1.5 text-xs text-paper/60 active:scale-95"
+            >
+              ↺ Réinitialiser
             </button>
           </div>
 
-          <div className="flex border-b border-gold/10">
+          <div className="flex gap-1 rounded-full bg-surface p-1 mx-4 my-2">
             <button
               onClick={() => setView("order")}
-              className={`flex-1 py-2 text-sm font-medium ${
-                view === "order" ? "border-b-2 border-gold text-gold" : "text-paper/50"
+              className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
+                view === "order" ? "bg-shu text-paper" : "text-paper/50"
               }`}
             >
               Commander
             </button>
             <button
               onClick={() => setView("totals")}
-              className={`flex-1 py-2 text-sm font-medium ${
-                view === "totals" ? "border-b-2 border-gold text-gold" : "text-paper/50"
+              className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
+                view === "totals" ? "bg-shu text-paper" : "text-paper/50"
               }`}
             >
-              Totaux (feuille resto)
+              Totaux
             </button>
           </div>
 
@@ -431,7 +435,7 @@ export default function OrderingApp({
                 ) : (
                   <button
                     onClick={() => setShowAddDish(true)}
-                    className="rounded-lg border border-dashed border-gold/30 py-2 text-sm text-gold"
+                    className="rounded-xl border border-dashed border-gold/30 py-3 text-sm font-medium text-gold active:scale-[0.98]"
                   >
                     + Ajouter un plat hors carte
                   </button>
@@ -439,19 +443,19 @@ export default function OrderingApp({
               </div>
             ) : (
               <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-2">
+                <div className="flex gap-1 rounded-full bg-surface p-1">
                   <button
                     onClick={() => setTotalsScope("round")}
-                    className={`rounded-full px-3 py-1 text-sm font-medium ${
-                      totalsScope === "round" ? "bg-shu text-paper" : "bg-surface text-paper/60"
+                    className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
+                      totalsScope === "round" ? "bg-shu text-paper" : "text-paper/60"
                     }`}
                   >
-                    Round {rounds.find((r) => r.id === activeRoundId)?.round_number} uniquement
+                    Round {rounds.find((r) => r.id === activeRoundId)?.round_number}
                   </button>
                   <button
                     onClick={() => setTotalsScope("outing")}
-                    className={`rounded-full px-3 py-1 text-sm font-medium ${
-                      totalsScope === "outing" ? "bg-shu text-paper" : "bg-surface text-paper/60"
+                    className={`flex-1 rounded-full py-1.5 text-sm font-medium active:scale-95 ${
+                      totalsScope === "outing" ? "bg-shu text-paper" : "text-paper/60"
                     }`}
                   >
                     Toute la sortie
@@ -492,7 +496,10 @@ export default function OrderingApp({
                       : "Aucune commande pour le moment."}
                   </p>
                 )}
-                <button onClick={closeOuting} className="mt-4 text-sm text-paper/40 underline">
+                <button
+                  onClick={closeOuting}
+                  className="mt-4 rounded-xl border border-gold/20 py-3 text-sm font-medium text-paper/60 active:scale-[0.98]"
+                >
                   Clôturer cette sortie
                 </button>
               </div>

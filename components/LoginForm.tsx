@@ -42,8 +42,11 @@ export default function LoginForm() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 bg-ink p-6 text-paper">
       <div>
-        <Link href="/" className="text-xs text-paper/40 underline">
-          ← Retour
+        <Link
+          href="/"
+          className="-ml-1 flex w-fit items-center gap-0.5 rounded-full py-1.5 pl-1 pr-3 text-sm font-medium text-gold active:opacity-60"
+        >
+          <span className="text-lg">‹</span> Retour
         </Link>
         <h1 className="mt-2 font-display text-2xl font-bold text-gold">S-Grill 🍢</h1>
       </div>
@@ -51,7 +54,7 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {mode === "signup" && (
           <input
-            className="rounded-lg border border-gold/20 bg-surface px-3 py-2 placeholder:text-paper/40"
+            className="rounded-xl border border-gold/20 bg-surface px-3 py-3 placeholder:text-paper/40"
             placeholder="Prénom"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -59,7 +62,7 @@ export default function LoginForm() {
           />
         )}
         <input
-          className="rounded-lg border border-gold/20 bg-surface px-3 py-2 placeholder:text-paper/40"
+          className="rounded-xl border border-gold/20 bg-surface px-3 py-3 placeholder:text-paper/40"
           type="email"
           placeholder="Email"
           value={email}
@@ -67,7 +70,7 @@ export default function LoginForm() {
           required
         />
         <input
-          className="rounded-lg border border-gold/20 bg-surface px-3 py-2 placeholder:text-paper/40"
+          className="rounded-xl border border-gold/20 bg-surface px-3 py-3 placeholder:text-paper/40"
           type="password"
           placeholder="Mot de passe"
           value={password}
@@ -81,14 +84,14 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-shu px-3 py-2 font-medium text-paper shadow-lg shadow-shu/20 disabled:opacity-50"
+          className="rounded-xl bg-shu px-3 py-3 font-medium text-paper shadow-lg shadow-shu/20 active:scale-[0.98] disabled:opacity-50"
         >
           {loading ? "..." : mode === "signin" ? "Se connecter" : "S'inscrire"}
         </button>
       </form>
 
       <button
-        className="text-sm text-paper/50 underline"
+        className="rounded-full py-1.5 text-sm text-paper/50 active:opacity-60"
         onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
       >
         {mode === "signin" ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}

@@ -13,7 +13,7 @@ export default function DishStepper({
         type="button"
         onClick={() => onChange(Math.max(0, quantity - 1))}
         disabled={quantity <= 0}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 text-lg leading-none text-gold disabled:opacity-30"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 text-lg leading-none text-gold active:scale-90 disabled:opacity-30"
       >
         −
       </button>
@@ -21,7 +21,7 @@ export default function DishStepper({
       <button
         type="button"
         onClick={() => onChange(quantity + 1)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-shu text-lg leading-none text-paper"
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-shu text-lg leading-none text-paper active:scale-90"
       >
         +
       </button>

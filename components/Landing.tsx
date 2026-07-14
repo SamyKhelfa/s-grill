@@ -22,13 +22,13 @@ export default function Landing() {
         <div className="flex flex-col gap-3">
           <Link
             href="/login?mode=signup"
-            className="rounded-lg bg-shu px-5 py-3 text-center font-medium text-paper shadow-lg shadow-shu/20"
+            className="rounded-xl bg-shu px-5 py-3 text-center font-medium text-paper shadow-lg shadow-shu/20 active:scale-[0.98]"
           >
             S&apos;inscrire
           </Link>
           <Link
             href="/login"
-            className="rounded-lg border border-gold/30 px-5 py-3 text-center font-medium text-gold"
+            className="rounded-xl border border-gold/30 px-5 py-3 text-center font-medium text-gold active:scale-[0.98]"
           >
             Se connecter
           </Link>

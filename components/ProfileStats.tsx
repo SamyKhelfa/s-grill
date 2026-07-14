@@ -59,14 +59,21 @@ export default function ProfileStats({
     })();
   }, [userId]);
 
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  }
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col bg-ink p-4 text-paper">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-lg font-bold text-gold">👤 {displayName}</h1>
-        <button onClick={onClose} className="text-sm text-paper/60 underline">
-          Retour
-        </button>
-      </div>
+      <button
+        onClick={onClose}
+        className="-ml-1 mb-2 flex w-fit items-center gap-0.5 rounded-full py-1.5 pl-1 pr-3 text-sm font-medium text-gold active:opacity-60"
+      >
+        <span className="text-lg">‹</span> Retour
+      </button>
+      <h1 className="mb-4 font-display text-lg font-bold text-gold">👤 {displayName}</h1>
 
       {loading ? (
         <p className="text-sm text-paper/50">Chargement…</p>
@@ -92,6 +99,13 @@ export default function ProfileStats({
               <p className="mt-1 text-sm text-paper/50">Pas encore de commande.</p>
             )}
           </div>
+
+          <button
+            onClick={signOut}
+            className="mt-4 rounded-xl border border-gold/20 py-3 text-sm font-medium text-paper/60 active:scale-[0.98]"
+          >
+            Se déconnecter
+          </button>
         </div>
       )}
     </main>
