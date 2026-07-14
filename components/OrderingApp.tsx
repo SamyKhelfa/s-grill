@@ -279,7 +279,7 @@ export default function OrderingApp({
         </div>
 
         {showCart && (
-          <div className="absolute right-4 top-full z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl bg-surface-2 p-3 shadow-xl shadow-black/40 ring-1 ring-gold/20">
+          <div className="animate-pop-in absolute right-4 top-full z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl bg-surface-2 p-3 shadow-xl shadow-black/40 ring-1 ring-gold/20">
             <div className="mb-2 flex items-center justify-between border-b border-gold/10 pb-2">
               <p className="text-sm font-semibold text-gold">
                 Round {rounds.find((r) => r.id === activeRoundId)?.round_number}
